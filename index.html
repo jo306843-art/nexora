@@ -1,130 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#171f35">
-<title>متجري | متجر إلكتروني</title>
-<style>
-:root{--navy:#17233d;--orange:#f6a623;--bg:#f4f6f9;--ink:#202938;--muted:#697586;--line:#e4e8ef;--white:#fff;--green:#138a58}
-*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-button,input,select{font:inherit}button{cursor:pointer}
-.top{background:var(--navy);color:#fff;padding:13px 4%;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.logo{font-size:23px;font-weight:800;white-space:nowrap}.logo span{color:var(--orange)}
-.search{display:flex;flex:1;min-width:220px}.search input{width:100%;border:0;padding:12px 14px;border-radius:0 8px 8px 0;outline:0}.search button{border:0;background:var(--orange);padding:0 18px;border-radius:8px 0 0 8px;font-weight:bold}
-.head-actions{display:flex;gap:12px}.head-actions button{background:transparent;color:#fff;border:1px solid #64708a;border-radius:8px;padding:10px 12px}
-.subnav{background:#263654;color:#fff;padding:10px 4%;display:flex;gap:20px;overflow:auto;white-space:nowrap;font-size:14px}
-.subnav a{color:#fff;text-decoration:none}
-main{max-width:1200px;margin:22px auto;padding:0 16px}
-.hero{background:linear-gradient(110deg,#17233d,#34547c);color:white;border-radius:16px;padding:28px 30px;display:flex;justify-content:space-between;align-items:center;gap:18px;min-height:190px}
-.hero h1{font-size:clamp(23px,4vw,36px);margin:0 0 10px}.hero p{margin:0;color:#e2e9f5;line-height:1.8}.hero .tag{background:var(--orange);color:#18233a;padding:9px 14px;border-radius:30px;font-weight:bold;display:inline-block;margin-top:16px}
-.hero-icon{font-size:80px;opacity:.9}
-.section-head{display:flex;justify-content:space-between;align-items:center;margin:25px 0 14px}.section-head h2{font-size:21px;margin:0}.muted{color:var(--muted);font-size:13px}
-.categories{display:flex;gap:10px;overflow:auto;padding-bottom:4px}.cat{border:1px solid var(--line);background:white;border-radius:30px;padding:10px 17px;white-space:nowrap}.cat.active{background:var(--navy);color:white;border-color:var(--navy)}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
-.card{background:white;border:1px solid var(--line);border-radius:13px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
-.pic{height:165px;background:#f0f2f6;display:grid;place-items:center;font-size:62px;position:relative}
-.pic small{position:absolute;top:10px;right:10px;background:#fff;border-radius:20px;padding:5px 9px;font-size:11px;color:var(--green)}
-.info{padding:13px;display:flex;flex-direction:column;gap:8px;flex:1}.info h3{font-size:15px;line-height:1.5;margin:0;min-height:44px}.price{font-size:18px;font-weight:bold;color:#17233d}.old{font-size:12px;color:#8b95a4;text-decoration:line-through;margin-right:5px}.rating{font-size:12px;color:#b7791f}.add{border:0;background:var(--orange);padding:10px;border-radius:8px;font-weight:bold;margin-top:auto}.empty{background:#fff;border:1px dashed #cbd3df;padding:28px;text-align:center;border-radius:12px;color:var(--muted)}
-footer{margin-top:38px;background:var(--navy);color:#dce3ef;padding:25px 4%;text-align:center;line-height:1.9}
-.drawer-bg{position:fixed;inset:0;background:#0007;z-index:10;display:none}.drawer-bg.show{display:block}.drawer{position:fixed;top:0;left:0;width:min(420px,100%);height:100%;background:#fff;z-index:11;transform:translateX(-105%);transition:.25s;padding:20px;overflow:auto}.drawer.show{transform:translateX(0)}
-.drawer-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px}.x{border:0;background:#eef1f5;border-radius:8px;padding:8px 12px}
-.cart-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}.cart-emoji{font-size:30px;background:#f2f4f7;padding:10px;border-radius:10px}.cart-row strong{display:block;font-size:14px}.qty{display:flex;align-items:center;gap:8px;margin-top:7px}.qty button{border:1px solid var(--line);background:white;border-radius:6px;width:27px;height:27px}
-.total{display:flex;justify-content:space-between;font-size:18px;font-weight:bold;margin:18px 0}.checkout{width:100%;border:0;background:var(--green);color:white;border-radius:9px;padding:13px;font-weight:bold}
-.modal{position:fixed;inset:0;background:#0008;display:none;place-items:center;z-index:20;padding:15px}.modal.show{display:grid}.modal-box{background:white;width:min(480px,100%);border-radius:15px;padding:20px;max-height:90vh;overflow:auto}.modal-box h2{margin-top:0}.field{display:block;margin:12px 0}.field label{display:block;font-size:13px;margin-bottom:6px}.field input{width:100%;padding:11px;border:1px solid #ccd3df;border-radius:8px}.hint{font-size:12px;color:var(--muted);line-height:1.7}
-@media(max-width:850px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hero-icon{font-size:60px}}
-@media(max-width:600px){.top{gap:10px}.logo{font-size:20px}.head-actions{width:100%}.head-actions button{flex:1}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pic{height:135px;font-size:52px}.info{padding:10px}.hero{padding:22px}.hero-icon{display:none}.section-head h2{font-size:18px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>NEXORA | متجر إلكتروني</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<header>
- <div class="top">
-  <div class="logo">متجري<span>●</span></div>
-  <form class="search" id="searchForm"><input id="searchInput" placeholder="ابحث عن منتج..." aria-label="ابحث عن منتج"><button>بحث</button></form>
-  <div class="head-actions"><button id="cartOpen">🛒 السلة (<b id="cartCount">0</b>)</button></div>
- </div>
- <nav class="subnav"><a href="#" data-cat="الكل">الرئيسية</a><a href="#products">كل المنتجات</a><a href="#products" data-cat="إلكترونيات">إلكترونيات</a><a href="#products" data-cat="ملابس">ملابس</a><a href="#products" data-cat="منزل">المنزل</a></nav>
-</header>
-<main>
- <section class="hero"><div><h1>أهلاً بيك في متجرك</h1><p>اكتشف منتجات مميزة وأسعار مناسبة، وتسوق بسهولة من مكان واحد.</p><span class="tag">تجربة تسوق سهلة وآمنة</span></div><div class="hero-icon">🛍️</div></section>
- <section><div class="section-head"><h2>تسوق حسب القسم</h2><span class="muted">اختار القسم المناسب</span></div><div class="categories" id="categories"></div></section>
- <section id="products"><div class="section-head"><h2>كل المنتجات</h2><span class="muted" id="resultCount"></span></div><div class="grid" id="productGrid"></div></section>
-</main>
-<footer>متجري — متجر مستقل خاص بيك<br><span class="hint">نسخة أولية للتجربة. غيّر الاسم والمنتجات ورقم واتساب قبل نشر المتجر للعملاء.</span></footer>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="NEXORA"><span class="brand-mark">N</span><span>NEXORA</span></a>
+    <nav><a href="#products">المتجر</a><a href="#orders">طلباتي</a><a href="#wallet">المحفظة</a></nav>
+    <div class="top-actions"><span id="user-label">زائر</span><button id="auth-open" class="btn btn-outline">دخول / حساب جديد</button><button id="logout" class="btn btn-dark hidden">خروج</button></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div><p class="eyebrow">اختياراتك اليومية تبدأ من هنا</p><h1>تسوّق بثقة.<br><span>اختَر NEXORA.</span></h1><p class="hero-copy">منتجات مختارة وتجربة شراء بسيطة وآمنة.</p><a class="btn btn-primary" href="#products">تسوق الآن</a></div>
+      <div class="hero-art"><div class="orbit"></div><div class="hero-chip">NEXORA<br><small>YOUR NEXT CHOICE</small></div></div>
+    </section>
+    <section class="section" id="products">
+      <div class="section-head"><div><p class="eyebrow">تشكيلة مختارة</p><h2>منتجاتنا</h2></div><span id="product-count" class="muted"></span></div>
+      <div id="products-grid" class="products-grid"><div class="loading">جاري تحميل المنتجات…</div></div>
+    </section>
+    <section class="section split">
+      <div class="panel" id="cart"><div class="section-head"><h2>سلة التسوق</h2><span id="cart-count" class="muted">0 منتجات</span></div><div id="cart-items" class="cart-items"><p class="muted">سلتك فارغة حاليًا.</p></div><div class="cart-foot"><strong>الإجمالي: <span id="cart-total">0</span> جنيه</strong><button id="checkout" class="btn btn-primary">تأكيد الطلب</button></div></div>
+      <div class="panel" id="account"><p class="eyebrow">حسابك</p><h2>كل طلباتك في مكان واحد</h2><p class="muted">سجّل الدخول لمتابعة طلباتك وطلبات المحفظة.</p><button id="account-auth" class="btn btn-outline">تسجيل الدخول</button><div id="account-message" class="notice">لم تسجل الدخول بعد.</div></div>
+    </section>
+    <section class="section split">
+      <div class="panel" id="orders"><div class="section-head"><h2>طلباتي</h2><button id="refresh-orders" class="text-btn">تحديث</button></div><div id="orders-list" class="muted">سجّل الدخول لعرض طلباتك.</div></div>
+      <div class="panel" id="wallet"><h2>المحفظة وطلبات التحويل</h2><p class="muted">يمكنك إرسال طلب إيداع أو سحب للمراجعة. الرصيد لا يتغير إلا بعد اعتماد الإدارة.</p><div class="wallet-actions"><button class="btn btn-outline" id="deposit-open">طلب إيداع</button><button class="btn btn-outline" id="withdraw-open">طلب سحب</button></div><div id="wallet-message" class="notice">سجّل الدخول لاستخدام المحفظة.</div></div>
+    </section>
+    <section class="section panel hidden" id="admin"><div class="section-head"><div><p class="eyebrow">منطقة خاصة</p><h2>لوحة إدارة NEXORA</h2></div><span class="admin-pill">مدير</span></div><div class="admin-grid"><div><h3>طلبات العملاء</h3><div id="admin-orders"></div></div><div><h3>طلبات المحفظة</h3><div id="admin-money"></div></div></div><p class="muted small">الإدارة متاحة فقط للحساب الذي تمنحه صلاحية admin من لوحة Supabase.</p></section>
+  </main>
+  <footer><strong>NEXORA</strong><span>تجربة تسوق واضحة وآمنة</span></footer>
 
-<div class="drawer-bg" id="drawerBg"></div><aside class="drawer" id="drawer">
- <div class="drawer-head"><h2>سلة المشتريات</h2><button class="x" id="cartClose">إغلاق ✕</button></div>
- <div id="cartItems"></div><div class="total"><span>الإجمالي</span><span id="cartTotal">0 ج.م</span></div>
- <button class="checkout" id="checkoutOpen">إتمام الطلب</button><p class="hint">سيتم تأكيد الطلب معك قبل الشحن. لا يوجد دفع إلكتروني في النسخة التجريبية.</p>
-</aside>
-<div class="modal" id="checkoutModal"><div class="modal-box">
- <div class="drawer-head"><h2>بيانات الطلب</h2><button class="x" id="checkoutClose">✕</button></div>
- <form id="checkoutForm">
-  <div class="field"><label>الاسم بالكامل</label><input required id="customerName" placeholder="اسمك"></div>
-  <div class="field"><label>رقم الموبايل</label><input required id="customerPhone" inputmode="tel" placeholder="01xxxxxxxxx"></div>
-  <div class="field"><label>العنوان بالتفصيل</label><input required id="customerAddress" placeholder="المحافظة - المنطقة - الشارع"></div>
-  <div class="field"><label>ملاحظات (اختياري)</label><input id="customerNotes" placeholder="اللون أو المقاس..."></div>
-  <button class="checkout" type="submit">تجهيز الطلب</button>
- </form>
- <p class="hint">النسخة الحالية تعرض الطلب وتجهزه للنسخ. عند إضافة رقم واتسابك يمكن ربط إرسال الطلب مباشرة.</p>
- <div id="orderOutput"></div>
-</div></div>
-<script>
-const products = [
- {id:1,name:"ساعة رجالي ERYS فضي بمينا كحلي",category:"ساعات رجالي",price:2200,old:0,emoji:"⌚",image:"watch_01.jpg",tag:"منتج جديد"},
- {id:9,name:"ساعة رجالي ERYS أسود",category:"ساعات رجالي",price:2200,old:0,emoji:"⌚",image:"watch_02_black.jpg",tag:"لون أسود"},
- {id:10,name:"ساعة رجالي ERYS ذهبي",category:"ساعات رجالي",price:2200,old:0,emoji:"⌚",image:"watch_03_gold.jpg",tag:"لون ذهبي"},
- {id:2,name:"ساعة يد أنيقة",category:"إكسسوارات",price:320,old:0,emoji:"⌚",tag:""},
- {id:3,name:"حقيبة عملية",category:"ملابس",price:390,old:450,emoji:"👜",tag:"الأكثر طلباً"},
- {id:4,name:"مصباح مكتب LED",category:"منزل",price:210,old:0,emoji:"💡",tag:""},
- {id:5,name:"حذاء رياضي",category:"ملابس",price:680,old:750,emoji:"👟",tag:"خصم"},
- {id:6,name:"كوب حراري",category:"منزل",price:160,old:0,emoji:"☕",tag:""},
- {id:7,name:"شاحن سريع",category:"إلكترونيات",price:275,old:320,emoji:"🔌",tag:""},
- {id:8,name:"نظارة شمسية",category:"إكسسوارات",price:240,old:0,emoji:"🕶️",tag:""}
-];
-let cart = JSON.parse(localStorage.getItem("myStoreCart") || "{}");
-let activeCategory = "الكل", searchTerm = "";
-const money = n => new Intl.NumberFormat("ar-EG").format(n) + " ج.م";
-const grid = document.getElementById("productGrid");
-function renderCategories(){
- const cats=["الكل",...new Set(products.map(p=>p.category))];
- document.getElementById("categories").innerHTML=cats.map(c=>`<button class="cat ${c===activeCategory?"active":""}" data-category="${c}">${c}</button>`).join("");
- document.querySelectorAll("[data-category]").forEach(b=>b.onclick=()=>{activeCategory=b.dataset.category;renderCategories();renderProducts()});
-}
-function renderProducts(){
- const shown=products.filter(p=>(activeCategory==="الكل"||p.category===activeCategory)&&(`${p.name} ${p.category}`).includes(searchTerm));
- document.getElementById("resultCount").textContent=`${shown.length} منتج`;
- grid.innerHTML=shown.length?shown.map(p=>`<article class="card"><div class="pic">${p.image?`<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;background:#fff">`:p.emoji}${p.tag?`<small>${p.tag}</small>`:""}</div><div class="info"><h3>${p.name}</h3><div class="rating">★★★★★ <span class="muted">متوفر للطلب</span></div><div><span class="price">${p.price>0?money(p.price):"السعر يُضاف قريباً"}</span>${p.old?`<span class="old">${money(p.old)}</span>`:""}</div><button class="add" data-add="${p.id}">أضف إلى السلة</button></div></article>`).join(""):`<div class="empty" style="grid-column:1/-1">مفيش منتجات مطابقة للبحث.</div>`;
- document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(+b.dataset.add));
-}
-function saveCart(){localStorage.setItem("myStoreCart",JSON.stringify(cart));renderCart();}
-function addToCart(id){cart[id]=(cart[id]||0)+1;saveCart();openCart();}
-function renderCart(){
- const entries=Object.entries(cart).filter(([id,q])=>q>0);
- document.getElementById("cartCount").textContent=entries.reduce((s,[,q])=>s+q,0);
- document.getElementById("cartItems").innerHTML=entries.length?entries.map(([id,q])=>{let p=products.find(x=>x.id===+id);return `<div class="cart-row"><div class="cart-emoji">${p.emoji}</div><div style="flex:1"><strong>${p.name}</strong><span class="muted">${money(p.price)}</span><div class="qty"><button data-dec="${id}">−</button>${q}<button data-inc="${id}">+</button><button data-del="${id}" class="x">حذف</button></div></div></div>`}).join(""):`<div class="empty">السلة لسه فاضية. أضف منتجاتك المفضلة.</div>`;
- let total=entries.reduce((s,[id,q])=>s+products.find(p=>p.id===+id).price*q,0);
- document.getElementById("cartTotal").textContent=money(total);
- document.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>{cart[b.dataset.inc]++;saveCart()});
- document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{let id=b.dataset.dec;cart[id]--;if(cart[id]<=0)delete cart[id];saveCart()});
- document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{delete cart[b.dataset.del];saveCart()});
-}
-function openCart(){document.getElementById("drawer").classList.add("show");document.getElementById("drawerBg").classList.add("show")}
-function closeCart(){document.getElementById("drawer").classList.remove("show");document.getElementById("drawerBg").classList.remove("show")}
-document.getElementById("cartOpen").onclick=openCart;document.getElementById("cartClose").onclick=closeCart;document.getElementById("drawerBg").onclick=closeCart;
-document.getElementById("searchForm").onsubmit=e=>{e.preventDefault();searchTerm=document.getElementById("searchInput").value.trim();renderProducts();document.getElementById("products").scrollIntoView({behavior:"smooth"})};
-document.querySelectorAll(".subnav a[data-cat]").forEach(a=>a.onclick=()=>{activeCategory=a.dataset.cat;renderCategories();renderProducts()});
-document.getElementById("checkoutOpen").onclick=()=>{if(!Object.keys(cart).length){alert("السلة فاضية، أضف منتج الأول.");return}document.getElementById("checkoutModal").classList.add("show")};
-document.getElementById("checkoutClose").onclick=()=>document.getElementById("checkoutModal").classList.remove("show");
-document.getElementById("checkoutForm").onsubmit=e=>{
- e.preventDefault();
- let lines=Object.entries(cart).map(([id,q])=>{let p=products.find(x=>x.id===+id);return `${p.name} × ${q} = ${money(p.price*q)}`});
- let total=Object.entries(cart).reduce((s,[id,q])=>s+products.find(p=>p.id===+id).price*q,0);
- let msg=`طلب جديد من المتجر%0Aالاسم: ${encodeURIComponent(document.getElementById("customerName").value)}%0Aالموبايل: ${encodeURIComponent(document.getElementById("customerPhone").value)}%0Aالعنوان: ${encodeURIComponent(document.getElementById("customerAddress").value)}%0Aالمنتجات:%0A${encodeURIComponent(lines.join("\n"))}%0Aالإجمالي: ${encodeURIComponent(money(total))}%0Aملاحظات: ${encodeURIComponent(document.getElementById("customerNotes").value)}`;
- document.getElementById("orderOutput").innerHTML=`<div class="empty" style="margin-top:15px;text-align:right"><b>تم تجهيز ملخص الطلب</b><p>${lines.join("<br>")}</p><b>الإجمالي: ${money(total)}</b><p class="hint">لإرسال الطلب مباشرة على واتساب، نحتاج إضافة رقم واتساب صاحب المتجر وربط الموقع به.</p><button class="add" id="copyOrder">نسخ تفاصيل الطلب</button></div>`;
- document.getElementById("copyOrder").onclick=()=>navigator.clipboard.writeText(decodeURIComponent(msg.replaceAll("%0A","\n"))).then(()=>alert("تم نسخ تفاصيل الطلب"));
-};
-renderCategories();renderProducts();renderCart();
-</script>
+  <dialog id="auth-dialog"><form method="dialog" class="dialog-close"><button aria-label="إغلاق">×</button></form><p class="eyebrow">مرحبًا بك</p><h2 id="auth-title">تسجيل الدخول</h2><form id="auth-form" class="form"><label>البريد الإلكتروني<input type="email" id="auth-email" required autocomplete="email"></label><label>كلمة المرور<input type="password" id="auth-password" required minlength="6" autocomplete="current-password"></label><label id="name-wrap" class="hidden">الاسم<input type="text" id="auth-name" autocomplete="name"></label><button class="btn btn-primary" id="auth-submit">دخول</button><button type="button" id="auth-switch" class="text-btn">إنشاء حساب جديد</button><p id="auth-error" class="error"></p></form></dialog>
+  <dialog id="money-dialog"><form method="dialog" class="dialog-close"><button aria-label="إغلاق">×</button></form><h2 id="money-title">طلب محفظة</h2><form id="money-form" class="form"><label>المبلغ بالجنيه<input type="number" id="money-amount" min="1" step="0.01" required></label><label>رقم المحفظة / وسيلة التحويل<input id="money-number" maxlength="80" placeholder="اكتب رقم التحويل أو وسيلة التواصل"></label><button class="btn btn-primary">إرسال الطلب للمراجعة</button><p class="muted small">هذا طلب مراجعة فقط وليس عملية دفع أو تحويل تلقائية.</p><p id="money-error" class="error"></p></form></dialog>
+  <div id="toast" role="status" class="toast"></div>
+  <script src="config.js"></script><script src="app.js"></script>
 </body>
 </html>
