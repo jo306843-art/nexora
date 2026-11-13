@@ -64,6 +64,19 @@
   if(fixes.length)await Promise.all(fixes);
  }
 
+
+ async function seedExpandedCatalog(){
+  if(!owner)return;
+  const items=[["عطر مسك أبيض","عطور",490,650,"1594035910387-fea47794261f","عطر برائحة المسك الناعمة للاستخدام اليومي"],["عطر زهري فاخر","عطور",620,790,"1541643600914-78b084683601","عطر بنفحات زهرية أنيقة"],["عطر شرقي دافئ","عطور",550,720,"1592945403244-b3fbafd7f539","عطر شرقي بلمسة فاخرة"],["عطر فانيليا ناعم","عطور",430,560,"1595425970377-c9703cf48b6d","رائحة فانيليا دافئة ومميزة"],["فستان كاجوال أنيق","أزياء حريمي",890,1150,"1490481651871-ab68de25d43d","إطلالة يومية أنيقة بقصة مريحة"],["إطلالة صيفية خفيفة","أزياء حريمي",760,990,"1483985988355-763728e1935b","اختيار عملي لإطلالات الصيف"],["بلوزة كلاسيك","أزياء حريمي",520,690,"1485230895905-ec40ba36b9bc","بلوزة بتصميم بسيط وأنيق"],["طقم أنيق للخروج","أزياء حريمي",1050,1390,"1539109136881-3be0616acf4b","تنسيق أنيق للمناسبات والخروجات"],["حقيبة كتف يومية","حقائب",690,890,"1548036328-c9fa89d128fa","حقيبة عملية بتصميم عصري"],["حقيبة يد كلاسيك","حقائب",820,1090,"1584917865442-de89df76afd3","حقيبة يد أنيقة للاستخدام اليومي"],["حقيبة صغيرة للمناسبات","حقائب",580,760,"1566150905458-1bf1fc113f0d","حقيبة صغيرة لإطلالة مسائية"],["محفظة نسائية","حقائب",340,450,"1627123424574-724758594e93","محفظة أنيقة بحجم عملي"],["نظارة شمسية عصرية","إكسسوارات",390,520,"1511556820780-d912e42b4980","نظارة شمسية تكمل إطلالتك"],["ساعة نسائية رقيقة","إكسسوارات",740,980,"1523170335258-f5ed11844a49","ساعة نسائية بتصميم ناعم"],["إيشارب بنقشة أنيقة","إكسسوارات",260,350,"1601924994987-69e26d50dc26","إيشارب خفيف بألوان جذابة"],["حزام جلد كلاسيك","إكسسوارات",310,420,"1553062407-98eeb64c6a62","حزام بتصميم كلاسيكي"],["سلسلة نسائية رقيقة","إكسسوارات",280,390,"1617038220319-276d3cfab638","سلسلة أنيقة لإطلالة يومية"],["أقراط بتصميم عصري","إكسسوارات",360,490,"1605100804763-247f67b3557e","أقراط بتفاصيل لامعة"],["حذاء نسائي أنيق","أزياء حريمي",950,1250,"1543163521-1bf539c55dd2","حذاء أنيق للمشاوير والمناسبات"],["حقيبة ظهر صغيرة","حقائب",640,850,"1551232864-3f0890e580d9","حقيبة ظهر عملية وخفيفة"]];
+  const {data:existing,error}=await sb.from("products").select("name").limit(2000);
+  if(error){console.warn("NEXORA expanded catalog:",error.message);return;}
+  const have=new Set((existing||[]).map(p=>String(p.name||"").trim().toLowerCase()));
+  const rows=items.filter(x=>!have.has(x[0].toLowerCase())).map((x,i)=>({name:x[0],category:x[1],price:x[2],old_price:x[3],image_url:"https://images.unsplash.com/photo-"+x[4]+"?auto=format&fit=crop&w=900&q=85",description:x[5]+" — صور توضيحية للمنتج",brand:"NEXORA COLLECTION",stock:8+(i%9),active:true}));
+  if(!rows.length)return;
+  const {error:insertError}=await sb.from("products").insert(rows);
+  if(insertError)console.warn("NEXORA expanded catalog:",insertError.message);
+ }
+
  async function loadProducts(){
   const {data:rows,error}=await sb.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").order("created_at",{ascending:false});
   if(error){if($("#nxProductsList"))$("#nxProductsList").textContent="خطأ تحميل المنتجات: "+error.message;return;}
@@ -109,6 +122,6 @@
  async function claimReward(){const session=await check();if(!session){say("سجّل الدخول أو أنشئ حسابًا أولًا لاستلام المكافأة");if(typeof showPage==="function")showPage("login");return;}const {data,error}=await sb.rpc("claim_daily_reward");if(error){say(error.message.includes("already_claimed_today")?"استلمت مكافأة اليوم بالفعل": "تعذر استلام المكافأة: "+error.message);return;}say("تم إضافة "+money(data?.[0]?.reward_amount)+" جنيه لرصيدك");await loadReward();window.dispatchEvent(new Event("nexora:wallet-refresh"));}
  window.nxClaimDailyReward=claimReward;
  async function saveReward(){if(!owner)return;const amount=Number($("#nxRewardAmount").value);if(!Number.isFinite(amount)||amount<0||amount>1000){say("المبلغ من صفر إلى 1000 جنيه");return;}const {error}=await sb.rpc("owner_set_daily_reward",{p_amount:amount});if(error)say("تعذر الحفظ: "+error.message);else{say("تم تحديث مكافأة الدخول اليومية");await loadReward();}}
- async function init(){if(!sb)return;await check();addAdmin();await seedStarterCatalog();await loadProducts();await loadReward();sb.auth.onAuthStateChange(()=>setTimeout(async()=>{await check();addAdmin();await seedStarterCatalog();await loadProducts();await loadReward();},100));}
+ async function init(){if(!sb)return;await check();addAdmin();await seedStarterCatalog();await seedExpandedCatalog();await loadProducts();await loadReward();sb.auth.onAuthStateChange(()=>setTimeout(async()=>{await check();addAdmin();await seedStarterCatalog();await loadProducts();await loadReward();},100));}
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
