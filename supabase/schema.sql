@@ -15,6 +15,9 @@ create table if not exists public.profiles (
   full_name text not null default '',
   created_at timestamptz not null default now()
 );
+alter table public.profiles add column if not exists email text not null default '';
+alter table public.profiles add column if not exists full_name text not null default '';
+alter table public.profiles add column if not exists created_at timestamptz not null default now();
 alter table public.profiles add column if not exists role text not null default 'customer';
 alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles add constraint profiles_role_check check (role in ('customer','owner'));
@@ -73,8 +76,15 @@ drop trigger if exists on_auth_user_created_nexora on auth.users;
 create trigger on_auth_user_created_nexora after insert on auth.users
 for each row execute procedure public.handle_new_nexora_user();
 
--- Ensure the one configured owner is assigned owner role even if the account already exists.
-update public.profiles p set role=case when lower(p.email)='hoba20@nexora.com' then 'owner' else 'customer' end;
+-- Backfill accounts and wallets that existed before this migration.
+insert into public.profiles(id,email,full_name,role)
+select u.id,lower(coalesce(u.email,'')),coalesce(u.raw_user_meta_data->>'full_name',''),
+  case when lower(coalesce(u.email,''))='hoba20@nexora.com' then 'owner' else 'customer' end
+from auth.users u
+on conflict(id) do update set email=excluded.email,
+  role=case when excluded.email='hoba20@nexora.com' then 'owner' else 'customer' end;
+insert into public.wallets(user_id,balance)
+select p.id,0 from public.profiles p on conflict(user_id) do nothing;
 
 alter table public.profiles enable row level security;
 alter table public.wallets enable row level security;
@@ -98,10 +108,9 @@ drop policy if exists "customer create own wallet request" on public.wallet_requ
 create policy "customer create own wallet request" on public.wallet_requests for insert to authenticated
 with check (user_id=auth.uid() and status='pending' and reviewed_by is null and reviewed_at is null);
 drop policy if exists "settings read authenticated" on public.store_settings;
-create policy "settings read authenticated" on public.store_settings for select to authenticated using (true);
+drop policy if exists "settings read public" on public.store_settings;
 drop policy if exists "settings owner manage" on public.store_settings;
-create policy "settings owner manage" on public.store_settings for all to authenticated
-using (public.is_nexora_owner()) with check (public.is_nexora_owner());
+create policy "settings read public" on public.store_settings for select to anon, authenticated using (true);
 
 create or replace function public.owner_adjust_wallet(p_user_id uuid,p_amount numeric,p_reason text)
 returns numeric language plpgsql security definer
@@ -147,6 +156,43 @@ begin
     reviewed_by=auth.uid(),reviewed_at=now() where id=p_request_id;
 end;
 $$;
+
+
+create or replace function public.owner_set_store_settings(p_transfer_number text,p_telegram_username text)
+returns void language plpgsql security definer
+set search_path = public, auth
+as $
+begin
+  if not public.is_nexora_owner() then raise exception 'owner_only'; end if;
+  if length(trim(coalesce(p_telegram_username,''))) not between 5 and 32
+     or p_telegram_username !~ '^[A-Za-z0-9_]+
+revoke all on function public.owner_review_wallet_request(bigint,text,text) from public;
+grant execute on function public.owner_adjust_wallet(uuid,numeric,text) to authenticated;
+grant execute on function public.owner_review_wallet_request(bigint,text,text) to authenticated;
+grant execute on function public.is_nexora_owner() to authenticated;
+
+-- No client-side inserts/updates are allowed for wallets or the ledger.
+revoke insert, update, delete on public.wallets from anon, authenticated;
+revoke insert, update, delete on public.wallet_ledger from anon, authenticated;
+revoke update, delete on public.wallet_requests from anon, authenticated;
+ then raise exception 'invalid_telegram'; end if;
+  insert into public.store_settings(setting_key,setting_value,updated_by)
+  values ('transfer_number',coalesce(trim(p_transfer_number),''),auth.uid()),
+         ('telegram_username',trim(p_telegram_username),auth.uid())
+  on conflict(setting_key) do update set setting_value=excluded.setting_value,
+    updated_by=auth.uid(),updated_at=now();
+end;
+$;
+
+revoke all on function public.owner_set_store_settings(text,text) from public;
+grant execute on function public.owner_set_store_settings(text,text) to authenticated;
+
+revoke insert, update, delete on public.profiles from anon, authenticated;
+revoke insert, update, delete on public.store_settings from anon, authenticated;
+grant select on public.profiles, public.wallets, public.wallet_ledger, public.wallet_requests to authenticated;
+grant select on public.store_settings to anon, authenticated;
+grant insert on public.wallet_requests to authenticated;
+grant usage, select on sequence public.wallet_requests_id_seq to authenticated;
 
 revoke all on function public.owner_adjust_wallet(uuid,numeric,text) from public;
 revoke all on function public.owner_review_wallet_request(bigint,text,text) from public;
