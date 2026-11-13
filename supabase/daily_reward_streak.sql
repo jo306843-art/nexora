@@ -1,7 +1,7 @@
 -- NEXORA daily attendance streak: day 1 = base reward (20 EGP), +5 EGP per consecutive day; missed day resets.
 insert into public.store_settings(setting_key,setting_value)
 values('daily_reward_amount','20')
-on conflict(setting_key) do update set setting_value='20',updated_at=now();
+on conflict(setting_key) do nothing;
 
 create or replace function public.claim_daily_reward()
 returns table(reward_amount numeric,new_balance numeric,claimed_date date)
