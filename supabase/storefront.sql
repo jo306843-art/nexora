@@ -8,13 +8,19 @@ create table if not exists public.products (
   price numeric(12,2) not null check (price > 0),
   old_price numeric(12,2) not null default 0,
   image_url text not null default '',
+  stock integer not null default 0,
   active boolean not null default true,
+  brand text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Compatibility for an existing catalog: add only missing fields; never replace product rows.
 alter table public.products add column if not exists category text not null default 'عام';
 alter table public.products add column if not exists old_price numeric(12,2) not null default 0;
 alter table public.products add column if not exists image_url text not null default '';
+alter table public.products add column if not exists stock integer not null default 0;
+alter table public.products alter column stock set default 0;
+alter table public.products add column if not exists brand text not null default '';
 alter table public.products add column if not exists active boolean not null default true;
 alter table public.products add column if not exists created_at timestamptz not null default now();
 alter table public.products add column if not exists updated_at timestamptz not null default now();
