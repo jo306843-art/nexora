@@ -54,7 +54,8 @@
   if(claimButton){claimButton.disabled=claimed;claimButton.textContent=claimed?'تم استلام مكافأة اليوم':'استلام '+money(amount)+' جنيه';}
  }
  async function claimReward(){const session=await check();if(!session){say("سجّل الدخول أو أنشئ حسابًا أولًا لاستلام المكافأة");if(typeof showPage==="function")showPage("login");return;}const {data,error}=await sb.rpc("claim_daily_reward");if(error){say(error.message.includes("already_claimed_today")?"استلمت مكافأة اليوم بالفعل": "تعذر استلام المكافأة: "+error.message);return;}say("تم إضافة "+money(data?.[0]?.reward_amount)+" جنيه لرصيدك");await loadReward();window.dispatchEvent(new Event("nexora:wallet-refresh"));}
- window.nxClaimDailyReward=claimReward;\n async function saveReward(){if(!owner)return;const amount=Number($("#nxRewardAmount").value);if(!Number.isFinite(amount)||amount<0||amount>1000){say("المبلغ من صفر إلى 1000 جنيه");return;}const {error}=await sb.rpc("owner_set_daily_reward",{p_amount:amount});if(error)say("تعذر الحفظ: "+error.message);else{say("تم تحديث مكافأة الدخول اليومية");await loadReward();}}
+ window.nxClaimDailyReward=claimReward;
+ async function saveReward(){if(!owner)return;const amount=Number($("#nxRewardAmount").value);if(!Number.isFinite(amount)||amount<0||amount>1000){say("المبلغ من صفر إلى 1000 جنيه");return;}const {error}=await sb.rpc("owner_set_daily_reward",{p_amount:amount});if(error)say("تعذر الحفظ: "+error.message);else{say("تم تحديث مكافأة الدخول اليومية");await loadReward();}}
  async function init(){if(!sb)return;await check();addAdmin();await loadProducts();await loadReward();sb.auth.onAuthStateChange(()=>setTimeout(async()=>{await check();addAdmin();await loadProducts();await loadReward();},100));}
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
