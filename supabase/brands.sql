@@ -1,5 +1,11 @@
 -- Brand catalog collections for NEXORA. Products are curated style selections, not brand-authenticated goods.
+-- Ensure the existing products table has the catalog fields expected by the storefront.
+-- Existing descriptions, stock counts, product IDs, and product rows are left intact.
+alter table public.products add column if not exists category text not null default 'عام';
+alter table public.products add column if not exists old_price numeric(12,2) not null default 0;
 alter table public.products add column if not exists brand text not null default '';
+alter table public.products add column if not exists updated_at timestamptz not null default now();
+alter table public.products alter column stock set default 0;
 create index if not exists products_brand_active_idx on public.products(brand,active);
 drop policy if exists "nexora_products_public_read" on public.products;
 create policy "nexora_products_public_read" on public.products for select to anon, authenticated using (active or public.is_nexora_owner());
