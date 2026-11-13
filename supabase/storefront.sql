@@ -287,7 +287,7 @@ $$;
 revoke all on function public.place_wallet_order(jsonb) from public;
 revoke all on function public.cancel_wallet_order(bigint) from public;
 revoke all on function public.owner_update_order_status(bigint,text) from public;
-grant execute on function public.is_nexora_owner() to authenticated;
+grant execute on function public.is_nexora_owner() to anon, authenticated;
 grant execute on function public.place_wallet_order(jsonb) to authenticated;
 grant execute on function public.cancel_wallet_order(bigint) to authenticated;
 grant execute on function public.owner_update_order_status(bigint,text) to authenticated;
