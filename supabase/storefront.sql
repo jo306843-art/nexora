@@ -28,6 +28,12 @@ alter table public.orders add column if not exists reviewed_at timestamptz;
 alter table public.orders add column if not exists reviewed_by uuid references auth.users(id);
 alter table public.orders add column if not exists review_note text;
 
+-- Mark legacy Vodafone Cash orders correctly so wallet cancellation cannot refund them.
+update public.orders
+set payment_method = 'vodafone_cash'
+where sender_phone is not null
+  and status in ('pending_review','paid','rejected');
+
 -- Preserve old statuses while allowing both existing Vodafone Cash orders and wallet orders.
 do $$
 declare v_status_att smallint;
