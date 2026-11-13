@@ -23,7 +23,7 @@ alter table public.daily_reward_claims enable row level security;
 drop policy if exists nx_daily_claims_read on public.daily_reward_claims;
 create policy nx_daily_claims_read on public.daily_reward_claims for select to authenticated using(user_id=auth.uid() or public.is_nexora_owner());
 grant select on public.daily_reward_claims to authenticated;
-insert into public.store_settings(setting_key,setting_value) values('daily_reward_amount','5') on conflict(setting_key) do nothing;
+insert into public.store_settings(setting_key,setting_value) values('daily_reward_amount','20') on conflict(setting_key) do nothing;
 
 create or replace function public.owner_set_daily_reward(p_amount numeric)
 returns void language plpgsql security definer set search_path=public,pg_catalog as $$
