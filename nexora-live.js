@@ -54,7 +54,7 @@
     if($("adminUsers")) $("adminUsers").innerHTML=profiles.error?esc(profiles.error.message):(profiles.data||[]).map(u=>'<div class="admin-line"><b>'+esc(u.full_name||u.email)+'</b><br><small>'+esc(u.email)+' · '+esc(u.id)+'</small><br><b>الرصيد: '+money(balanceMap[u.id]||0)+' ج.م</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px"><input class="field" id="adj-'+u.id+'" type="number" step="0.01" placeholder="+ أو - مبلغ"><input class="field" id="reason-'+u.id+'" placeholder="سبب التعديل"><button class="primary" style="grid-column:1/-1" onclick="nxAdjustWallet(\''+u.id+'\')">تنفيذ وتسجيل الحركة</button></div></div>').join("")||"لا يوجد عملاء.";
     if($("adminWalletRequests")) $("adminWalletRequests").innerHTML=requests.error?esc(requests.error.message):(requests.data||[]).map(x=>'<div class="admin-line"><b>#'+x.id+' · '+(x.request_type==="deposit"?"إيداع":"سحب")+' · '+money(x.amount)+' ج.م</b><br><small>'+esc(names[x.user_id]||x.user_id)+' · '+statusName(x.status)+'<br>رقم المرسل: '+esc(x.sender_phone||"—")+' · رقم الاستلام: '+esc(x.payout_phone||"—")+'<br>مرجع التحويل: '+esc(x.transfer_reference||"—")+'<br>'+new Date(x.created_at).toLocaleString("ar-EG")+'</small>'+(x.status==="pending"?'<div style="display:flex;gap:8px;margin-top:8px"><button class="primary" style="background:#718A7D" onclick="nxReviewRequest('+x.id+',\'approved\')">اعتماد بعد التحقق</button><button class="primary" style="background:#a33" onclick="nxReviewRequest('+x.id+',\'rejected\')">رفض</button></div>':"")+'</div>').join("")||"لا توجد طلبات محفظة.";
     if($("adminLedger")) $("adminLedger").innerHTML=ledger.error?esc(ledger.error.message):(ledger.data||[]).map(x=>'<div class="admin-line"><b>'+esc(names[x.user_id]||x.user_id)+' · '+(Number(x.amount)>0?"+":"")+money(x.amount)+' ج.م</b><br><small>'+esc(x.reason)+' · '+new Date(x.created_at).toLocaleString("ar-EG")+' · المشغّل '+esc(x.operator_id||"النظام")+'</small></div>').join("")||"لا توجد حركات مسجلة.";
-    if($("admOrders")) $("admOrders").textContent=(requests.data||[]).length;
+    if($("admWalletCount")) $("admWalletCount").textContent=(requests.data||[]).length;
     if($("admProducts")) $("admProducts").textContent=(profiles.data||[]).length;
   }
   window.nxAdjustWallet=async id=>{
@@ -94,9 +94,7 @@
     const transfer=$("ownerPhone")?.value?.trim()||"";
     const telegram=($("ownerTelegram")?.value?.trim()||"@Vvcghy").replace(/^@/,"");
     if(!/^[A-Za-z0-9_]{5,32}$/.test(telegram)){say("اسم تليجرام غير صحيح.");return;}
-    const rows=[{setting_key:"transfer_number",setting_value:transfer,updated_by:currentUser.id},
-      {setting_key:"telegram_username",setting_value:telegram,updated_by:currentUser.id}];
-    const {error}=await client.from("store_settings").upsert(rows,{onConflict:"setting_key"});
+    const {error}=await client.rpc("owner_set_store_settings",{p_transfer_number:transfer,p_telegram_username:telegram});
     if(error){say("تعذر حفظ الإعدادات: "+error.message);return;}
     say("تم حفظ رقم التحويل والدعم لكل العملاء.");await loadSettings();
   };
