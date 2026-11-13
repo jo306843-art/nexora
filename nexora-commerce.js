@@ -12,9 +12,9 @@
  }
  function clearForm(){editing=null;["nxName","nxCat","nxPrice","nxOld","nxImage"].forEach(id=>$(id).value="");$("#nxSave").textContent="نشر المنتج";$("#nxCancel").style.display="none";}
  async function loadProducts(){
-  const {data,error}=await sb.from("products").select("id,name,category,price,old_price,image_url,active").order("created_at",{ascending:false});
+  const {data:rows,error}=await sb.from("products").select("id,name,category,price,old_price,image_url,active").order("created_at",{ascending:false});
   if(error){if($("#nxProductsList"))$("#nxProductsList").textContent="خطأ تحميل المنتجات: "+error.message;return;}
-  products=data||[];
+  products=rows||[];
   if(products.length){const visible=products.filter(p=>p.active||owner);data.splice(0,data.length,...data.filter(p=>!p[5]),...visible.map(p=>[p.name,p.category,Number(p.price),Number(p.old_price)||Number(p.price),p.image_url||"https://placehold.co/600x600?text=NEXORA",p.id]));if(typeof renderProducts==="function")renderProducts();}
   drawProducts();
  }
