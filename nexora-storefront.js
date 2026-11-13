@@ -14,7 +14,34 @@
   const menu=$("profile").querySelector(".menu-list");
   if(menu&&!$("nxFavoritesLink")){const b=document.createElement("button");b.id="nxFavoritesLink";b.className="menu-row";b.innerHTML='<span class="mi">♡</span>المفضلة <span class="arrow">‹</span>';b.onclick=()=>{showPage("favorites");loadFavorites();};menu.insertBefore(b,menu.firstChild);}
  }
- function addFavButtons(){
+
+ function setupBrandCollections(){
+  const section=$("brands");if(!section)return;
+  const grid=section.querySelector(".brands");if(!grid)return;
+  grid.querySelectorAll(".brand").forEach(card=>{
+   const name=card.querySelector("strong")?.textContent?.trim();if(!name)return;
+   card.style.cursor="pointer";card.setAttribute("role","button");card.setAttribute("tabindex","0");
+   card.onclick=()=>openBrand(name);
+   card.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openBrand(name);}};
+  });
+  if(!$("nxBrandCollection")){
+   const panel=document.createElement("section");panel.className="page";panel.id="nxBrandCollection";
+   panel.innerHTML='<div class="subhead"><button id="nxBrandBack">‹</button><span id="nxBrandTitle">المنتجات</span></div><p class="muted" style="padding:0 14px">تشكيلة مختارة تناسب أسلوب العلامة. المنتجات المعروضة ليست بالضرورة أصلية أو معتمدة من العلامة التجارية.</p><div class="section"><div class="products" id="nxBrandProducts"></div><p class="muted" id="nxBrandEmpty" style="text-align:center;padding:20px;display:none">لا توجد منتجات لهذه العلامة حاليًا.</p></div>';
+   section.parentNode.insertBefore(panel,section.nextSibling);
+   $("nxBrandBack").onclick=()=>showPage("brands");
+  }
+ }
+ async function openBrand(name){
+  if(!db){say("تعذر الاتصال بالمتجر حاليًا.");return;}
+  $("nxBrandTitle").textContent=name;
+  showPage("nxBrandCollection");
+  const {data,error}=await db.from("products").select("id,name,category,brand,price,old_price,image_url,active").eq("brand",name).eq("active",true).order("created_at",{ascending:false});
+  if(error){$("nxBrandProducts").innerHTML="تعذر تحميل المنتجات: "+esc(error.message);return;}
+  const rows=data||[];
+  $("nxBrandProducts").innerHTML=rows.map(p=>'<article class="product"><img loading="lazy" src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'"><div class="name">'+esc(p.name)+'</div><b class="price">'+money(p.price)+' ج.م</b><button class="add" onclick="nxBuyOne(\''+p.id+'\')">اطلب الآن</button></article>').join("");
+  $("nxBrandEmpty").style.display=rows.length?"none":"block";
+ }
+\n function addFavButtons(){
   if(typeof window.product!=="function")return;
   const original=window.product;
   if(original.__nxWrapped)return;
@@ -68,7 +95,7 @@
   const mine=(data||[]).filter(o=>isOwner||true);
   $("nxCustomerOrders").innerHTML=mine.map(o=>'<div class="admin-line"><b>طلب #'+o.id+' — '+money(o.total)+' ج.م</b><br><small>'+status[o.status]+' · '+new Date(o.created_at).toLocaleString("ar-EG")+'</small><ul>'+ (o.order_items||[]).map(i=>'<li>'+esc(i.product_name)+' × '+i.quantity+' — '+money(i.line_total)+' ج.م</li>').join("")+'</ul>'+(o.status==="placed"?'<button class="primary" style="background:#a33" onclick="nxCancelOrder('+o.id+')">إلغاء الطلب واسترداد المبلغ</button>':"")+'</div>').join("")||"لا توجد طلبات حتى الآن.";
   if(isOwner&&$("nxOwnerOrdersList"))$("nxOwnerOrdersList").innerHTML=mine.map(o=>'<div class="admin-line"><b>طلب #'+o.id+' — '+money(o.total)+' ج.م</b><br><small>'+status[o.status]+' · '+new Date(o.created_at).toLocaleString("ar-EG")+'</small><ul>'+(o.order_items||[]).map(i=>'<li>'+esc(i.product_name)+' × '+i.quantity+'</li>').join("")+'</ul>'+(o.status==="placed"?'<button class="primary" onclick="nxOwnerOrderStatus('+o.id+',\'processing\')">بدء التجهيز</button>':o.status==="processing"?'<button class="primary" onclick="nxOwnerOrderStatus('+o.id+',\'shipped\')">تم الشحن</button>':o.status==="shipped"?'<button class="primary" onclick="nxOwnerOrderStatus('+o.id+',\'completed\')">إكمال الطلب</button>':"")+'</div>').join("")||"لا توجد طلبات.";}
- async function refresh(){await auth();ensurePanels();addFavButtons();await loadFavorites();await loadOrders();}
+ async function refresh(){await auth();ensurePanels();setupBrandCollections();addFavButtons();await loadFavorites();await loadOrders();}
  if(db){db.auth.onAuthStateChange(()=>setTimeout(refresh,0));if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",refresh);else refresh();}
  const oldShow=window.showPage;window.showPage=function(id,el){oldShow(id,el);if(id==="favorites")loadFavorites();if(id==="profile")loadOrders();};
  const css=document.createElement("style");css.textContent='.nx-fav{position:absolute;top:9px;left:9px;width:36px;height:36px;border:0;border-radius:50%;background:#fff;color:#b35a65;font-size:23px;box-shadow:0 2px 9px #0002;z-index:2}.product{position:relative}.nx-fav:active{transform:scale(.94)}';document.head.appendChild(css);
