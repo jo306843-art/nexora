@@ -284,13 +284,153 @@ begin
 end;
 $$;
 
+
+-- Vodafone Cash orders share the existing orders table without being mistaken for wallet purchases.
+create or replace function public.place_vodafone_order(
+  p_items jsonb,
+  p_sender_phone text,
+  p_transfer_reference text
+)
+returns table(order_id bigint, order_total numeric)
+language plpgsql
+security definer
+set search_path = public, pg_catalog
+as $
+declare
+  v_item jsonb;
+  v_name text;
+  v_price numeric(14,2);
+  v_qty integer;
+  v_total numeric(14,2) := 0;
+  v_order_id bigint;
+begin
+  if auth.uid() is null then raise exception 'login_required'; end if;
+  if jsonb_typeof(p_items) is distinct from 'array'
+     or jsonb_array_length(p_items) = 0
+     or jsonb_array_length(p_items) > 30 then
+    raise exception 'cart_empty';
+  end if;
+  if length(regexp_replace(coalesce(p_sender_phone,''), '[^0-9]', '', 'g')) not between 10 and 15 then
+    raise exception 'invalid_sender_phone';
+  end if;
+  if length(trim(coalesce(p_transfer_reference,''))) < 3 then
+    raise exception 'transfer_reference_required';
+  end if;
+
+  for v_item in select value from jsonb_array_elements(p_items)
+  loop
+    v_name := trim(v_item->>'product_name');
+    v_price := (v_item->>'unit_price')::numeric;
+    v_qty := (v_item->>'quantity')::integer;
+    if v_name = '' or v_price <= 0 or v_qty < 1 or v_qty > 50 then
+      raise exception 'invalid_items';
+    end if;
+    if not exists (
+      select 1 from public.products p
+      where p.name = v_name and p.active = true and p.price = v_price
+    ) then
+      raise exception 'product_price_changed_or_unavailable: %', v_name;
+    end if;
+    v_total := v_total + (v_price * v_qty);
+  end loop;
+
+  if v_total <= 0 then raise exception 'invalid_total'; end if;
+
+  insert into public.orders(user_id,total,status,payment_method,sender_phone,transfer_reference)
+  values(auth.uid(),v_total,'pending_review','vodafone_cash',trim(p_sender_phone),trim(p_transfer_reference))
+  returning id into v_order_id;
+
+  for v_item in select value from jsonb_array_elements(p_items)
+  loop
+    v_name := trim(v_item->>'product_name');
+    v_price := (v_item->>'unit_price')::numeric;
+    v_qty := (v_item->>'quantity')::integer;
+    insert into public.order_items(order_id,product_name,unit_price,quantity,line_total)
+    values(v_order_id,v_name,v_price,v_qty,v_price*v_qty);
+  end loop;
+
+  return query select v_order_id,v_total;
+end;
+$;
+
+create or replace function public.owner_review_vodafone_order(
+  p_order_id bigint,
+  p_status text,
+  p_note text default ''
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_catalog
+as $
+declare
+  v_order public.orders%rowtype;
+  v_line record;
+  v_product public.products%rowtype;
+begin
+  if not public.is_nexora_owner() then raise exception 'owner_only'; end if;
+  if p_status not in ('paid','rejected') then raise exception 'invalid_status'; end if;
+
+  select * into v_order
+  from public.orders
+  where id = p_order_id
+  for update;
+
+  if not found or v_order.payment_method <> 'vodafone_cash' or v_order.status <> 'pending_review' then
+    raise exception 'order_not_pending';
+  end if;
+
+  if p_status = 'paid' then
+    for v_line in
+      select id, product_name, unit_price, quantity
+      from public.order_items
+      where order_id = p_order_id
+      order by id
+      for update
+    loop
+      select * into v_product
+      from public.products
+      where name = v_line.product_name
+        and price = v_line.unit_price
+        and active = true
+      order by id
+      limit 1
+      for update;
+
+      if not found or v_product.stock < v_line.quantity then
+        raise exception 'product_unavailable_or_out_of_stock: %', v_line.product_name;
+      end if;
+
+      update public.products
+      set stock = stock - v_line.quantity, updated_at = now()
+      where id = v_product.id;
+
+      update public.order_items
+      set product_id = v_product.id
+      where id = v_line.id;
+    end loop;
+  end if;
+
+  update public.orders
+  set status = p_status,
+      review_note = coalesce(p_note,''),
+      reviewed_at = now(),
+      reviewed_by = auth.uid()
+  where id = p_order_id;
+end;
+$;
+
 revoke all on function public.place_wallet_order(jsonb) from public;
 revoke all on function public.cancel_wallet_order(bigint) from public;
 revoke all on function public.owner_update_order_status(bigint,text) from public;
+revoke all on function public.place_vodafone_order(jsonb,text,text) from public;
+revoke all on function public.owner_review_vodafone_order(bigint,text,text) from public;
 grant execute on function public.is_nexora_owner() to anon, authenticated;
 grant execute on function public.place_wallet_order(jsonb) to authenticated;
 grant execute on function public.cancel_wallet_order(bigint) to authenticated;
 grant execute on function public.owner_update_order_status(bigint,text) to authenticated;
+grant execute on function public.place_vodafone_order(jsonb,text,text) to authenticated;
+grant execute on function public.owner_review_vodafone_order(bigint,text,text) to authenticated;
 
 grant select on public.products to anon, authenticated;
 grant select on public.favorites, public.orders, public.order_items to authenticated;
