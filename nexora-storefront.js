@@ -35,7 +35,7 @@
   if(!db){say("تعذر الاتصال بالمتجر حاليًا.");return;}
   $("nxBrandTitle").textContent=name;
   showPage("nxBrandCollection");
-  const {data,error}=await db.from("products").select("id,name,category,brand,price,old_price,image_url,active").eq("brand",name).eq("active",true).order("created_at",{ascending:false});
+  const {data,error}=await db.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").eq("brand",name).eq("active",true).order("created_at",{ascending:false});
   if(error){$("nxBrandProducts").innerHTML="تعذر تحميل المنتجات: "+esc(error.message);return;}
   const rows=data||[];
   $("nxBrandProducts").innerHTML=rows.map(p=>'<article class="product"><img loading="lazy" src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'"><div class="name">'+esc(p.name)+'</div><b class="price">'+money(p.price)+' ج.م</b><button class="add" onclick="nxBuyOne(\''+p.id+'\')">اطلب الآن</button></article>').join("");
@@ -50,7 +50,7 @@
  }
  async function loadFavorites(){
   if(!user){$("nxFavoriteGrid").innerHTML="";$("nxFavoriteEmpty").textContent="سجّل الدخول لحفظ المفضلة ومزامنتها بين أجهزتك.";return;}
-  const {data,error}=await db.from("favorites").select("product_id,products(id,name,category,price,old_price,image_url,active)").eq("user_id",user.id);
+  const {data,error}=await db.from("favorites").select("product_id,products(id,name,description,category,price,old_price,image_url,stock,active)").eq("user_id",user.id);
   if(error){$("nxFavoriteEmpty").textContent="تعذر تحميل المفضلة: "+error.message;return;}
   favorites=new Set((data||[]).map(x=>x.product_id));
   const rows=(data||[]).map(x=>x.products).filter(Boolean);
