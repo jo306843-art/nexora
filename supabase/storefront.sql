@@ -119,7 +119,7 @@ begin
   for v_item in select value from jsonb_array_elements(p_items)
   loop
     v_qty := (v_item->>'quantity')::integer;
-    select * into v_product from public.products where id=(v_item->>'product_id')::uuid and active=true;
+    select * into v_product from public.products where id=(v_item->>'product_id')::bigint and active=true;
     insert into public.order_items(order_id,product_id,product_name,unit_price,quantity,line_total)
     values(v_order_id,v_product.id,v_product.name,v_product.price,v_qty,v_product.price*v_qty);
   end loop;
