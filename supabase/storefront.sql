@@ -295,7 +295,7 @@ returns table(order_id bigint, order_total numeric)
 language plpgsql
 security definer
 set search_path = public, pg_catalog
-as $
+as $$
 declare
   v_item jsonb;
   v_name text;
@@ -351,7 +351,7 @@ begin
 
   return query select v_order_id,v_total;
 end;
-$;
+$$;
 
 create or replace function public.owner_review_vodafone_order(
   p_order_id bigint,
@@ -362,7 +362,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public, pg_catalog
-as $
+as $$
 declare
   v_order public.orders%rowtype;
   v_line record;
@@ -418,7 +418,7 @@ begin
       reviewed_by = auth.uid()
   where id = p_order_id;
 end;
-$;
+$$;
 
 revoke all on function public.place_wallet_order(jsonb) from public;
 revoke all on function public.cancel_wallet_order(bigint) from public;
