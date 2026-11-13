@@ -3,7 +3,7 @@
   const client = window.supabase && cfg.supabaseUrl && cfg.supabaseAnonKey
     ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey) : null;
   const $ = id => document.getElementById(id);
-  const OWNER = "hoba20@nexora.com";
+  const OWNER = "jo306843@gmail.com";
   let currentUser = null, owner = false, settings = {};
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = v => Number(v || 0).toLocaleString("ar-EG",{minimumFractionDigits:2,maximumFractionDigits:2});
