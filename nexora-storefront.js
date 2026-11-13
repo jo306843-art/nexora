@@ -41,14 +41,14 @@
   const {data:orderId,error}=await db.rpc("place_wallet_order",{p_items:items});
   if(error){say(error.message.includes("insufficient_balance")?"رصيدك غير كافٍ. اشحن محفظتك أولًا.":"تعذر إتمام الطلب: "+error.message);return;}
   say("تم تأكيد طلبك رقم #"+orderId+" وخصم قيمته من رصيدك.");
-  if(typeof window.renderCart==="function"){window.cart=[];const c=$("cartCount");if(c)c.textContent="0";window.renderCart();}
+  if(typeof window.renderCart==="function"){if(typeof cart!=="undefined")cart=[];const c=$("cartCount");if(c)c.textContent="0";window.renderCart();}
   await loadOrders();window.dispatchEvent(new Event("nexora:wallet-refresh"));
  }
  window.nxBuyOne=async id=>buy([{product_id:id,quantity:1}]);
  window.nxWalletCheckout=async()=>{
-  if(!window.cart||!window.cart.length){say("السلة فارغة.");return;}
+  if(typeof cart==="undefined"||!cart.length){say("السلة فارغة.");return;}
   const grouped=new Map();
-  for(const p of window.cart){if(!p[5]){say("حدّث قائمة المنتجات ثم حاول مرة أخرى.");return;}const v=grouped.get(p[5])||0;grouped.set(p[5],v+1);}
+  for(const p of cart){if(!p[5]){say("حدّث قائمة المنتجات ثم حاول مرة أخرى.");return;}const v=grouped.get(p[5])||0;grouped.set(p[5],v+1);}
   await buy([...grouped].map(([product_id,quantity])=>({product_id,quantity})));
  };
  window.nxCancelOrder=async id=>{
