@@ -5,7 +5,7 @@
  const money=n=>Number(n||0).toLocaleString("ar-EG",{maximumFractionDigits:2});
  const say=m=>window.toast?window.toast(m):alert(m),OWNER="jo306843@gmail.com";
  let user=null,isOwner=false,favorites=new Set();
- const status={placed:"تم استلام الطلب",processing:"قيد التجهيز",shipped:"تم الشحن",completed:"مكتمل",cancelled:"ملغي — تم رد المبلغ"};
+ const status={pending_review:"بانتظار مراجعة التحويل",paid:"تم تأكيد الدفع",rejected:"تم رفض التحويل",placed:"تم استلام الطلب",processing:"قيد التجهيز",shipped:"تم الشحن",completed:"مكتمل",cancelled:"ملغي — تم رد المبلغ"};
  async function auth(){if(!db)return null;const {data}=await db.auth.getSession();user=data.session?.user||null;isOwner=(user?.email||"").toLowerCase()===OWNER;return user;}
  function ensurePanels(){
   if(!$("favorites")){const sec=document.createElement("section");sec.className="page";sec.id="favorites";sec.innerHTML='<div class="subhead"><button onclick="showPage(\'profile\')">‹</button>قائمة المفضلة ♡</div><div class="products" id="nxFavoriteGrid"></div><p class="muted" id="nxFavoriteEmpty" style="text-align:center;padding:20px">لا توجد منتجات في المفضلة بعد.</p>';$("profile").parentNode.insertBefore(sec,$("profile").nextSibling);}
@@ -90,9 +90,9 @@
  };
  async function loadOrders(){
   if(!db)return;await auth();if(!user){$("nxCustomerOrders").textContent="سجّل الدخول لعرض طلباتك.";return;}
-  const {data,error}=await db.from("orders").select("id,total,status,created_at,order_items(product_name,unit_price,quantity,line_total)").order("created_at",{ascending:false}).limit(isOwner?100:30);
+  const {data,error}=await db.from("orders").select("id,total,status,payment_method,created_at,order_items(product_name,unit_price,quantity,line_total)").order("created_at",{ascending:false}).limit(isOwner?100:30);
   if(error){$("nxCustomerOrders").textContent=error.message;return;}
-  const mine=(data||[]).filter(o=>isOwner||true);
+  const mine=data||[];
   $("nxCustomerOrders").innerHTML=mine.map(o=>'<div class="admin-line"><b>طلب #'+o.id+' — '+money(o.total)+' ج.م</b><br><small>'+status[o.status]+' · '+new Date(o.created_at).toLocaleString("ar-EG")+'</small><ul>'+ (o.order_items||[]).map(i=>'<li>'+esc(i.product_name)+' × '+i.quantity+' — '+money(i.line_total)+' ج.م</li>').join("")+'</ul>'+(o.status==="placed"?'<button class="primary" style="background:#a33" onclick="nxCancelOrder('+o.id+')">إلغاء الطلب واسترداد المبلغ</button>':"")+'</div>').join("")||"لا توجد طلبات حتى الآن.";
   if(isOwner&&$("nxOwnerOrdersList"))$("nxOwnerOrdersList").innerHTML=mine.map(o=>'<div class="admin-line"><b>طلب #'+o.id+' — '+money(o.total)+' ج.م</b><br><small>'+status[o.status]+' · '+new Date(o.created_at).toLocaleString("ar-EG")+'</small><ul>'+(o.order_items||[]).map(i=>'<li>'+esc(i.product_name)+' × '+i.quantity+'</li>').join("")+'</ul>'+(o.status==="placed"?'<button class="primary" onclick="nxOwnerOrderStatus('+o.id+',\'processing\')">بدء التجهيز</button>':o.status==="processing"?'<button class="primary" onclick="nxOwnerOrderStatus('+o.id+',\'shipped\')">تم الشحن</button>':o.status==="shipped"?'<button class="primary" onclick="nxOwnerOrderStatus('+o.id+',\'completed\')">إكمال الطلب</button>':"")+'</div>').join("")||"لا توجد طلبات.";}
  async function refresh(){await auth();ensurePanels();setupBrandCollections();addFavButtons();await loadFavorites();await loadOrders();}
