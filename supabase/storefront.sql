@@ -15,6 +15,11 @@ create table if not exists public.products (
   updated_at timestamptz not null default now()
 );
 -- Compatibility for an existing catalog: add only missing fields; never replace product rows.
+alter table public.products add column if not exists name text;
+update public.products
+set name = coalesce(nullif(btrim(name), ''), nullif(btrim(description), ''), 'منتج #' || id::text)
+where name is null or btrim(name) = '';
+alter table public.products alter column name set not null;
 alter table public.products add column if not exists category text not null default 'عام';
 alter table public.products add column if not exists old_price numeric(12,2) not null default 0;
 alter table public.products add column if not exists image_url text not null default '';
@@ -100,8 +105,8 @@ begin
     v_qty := (v_item->>'quantity')::integer;
     if v_qty < 1 or v_qty > 20 then raise exception 'invalid_quantity'; end if;
     select * into v_product from public.products
-      where id=(v_item->>'product_id')::bigint and active=true for share;
-    if not found then raise exception 'product_unavailable'; end if;
+      where id=(v_item->>'product_id')::bigint and active=true and stock >= v_qty for update;
+    if not found then raise exception 'product_unavailable_or_out_of_stock'; end if;
     v_total := v_total + v_product.price * v_qty;
   end loop;
   if v_total <= 0 then raise exception 'invalid_total'; end if;
@@ -117,6 +122,12 @@ begin
     select * into v_product from public.products where id=(v_item->>'product_id')::uuid and active=true;
     insert into public.order_items(order_id,product_id,product_name,unit_price,quantity,line_total)
     values(v_order_id,v_product.id,v_product.name,v_product.price,v_qty,v_product.price*v_qty);
+  end loop;
+
+  for v_item in select value from jsonb_array_elements(p_items)
+  loop
+    v_qty := (v_item->>'quantity')::integer;
+    update public.products set stock=stock-v_qty where id=(v_item->>'product_id')::bigint;
   end loop;
 
   update public.wallets set balance=balance-v_total,updated_at=now() where user_id=v_user returning balance into v_balance;
