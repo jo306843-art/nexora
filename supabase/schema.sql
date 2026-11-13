@@ -10,9 +10,14 @@ language sql
 stable
 security definer
 set search_path = pg_catalog, auth
-as $$
-  select lower(coalesce(auth.jwt() ->> 'email', '')) = 'jo306843@gmail.com';
-$$;
+as $
+  select exists (
+    select 1
+    from auth.users u
+    where u.id = auth.uid()
+      and lower(coalesce(u.email, '')) = 'jo306843@gmail.com'
+  );
+$;
 
 -- Customer profile metadata. Keep the table compatible with an existing profiles table.
 create table if not exists public.profiles (
