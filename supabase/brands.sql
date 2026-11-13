@@ -3,7 +3,15 @@
 -- Existing descriptions, stock counts, product IDs, and product rows are left intact.
 alter table public.products add column if not exists category text not null default 'عام';
 alter table public.products add column if not exists old_price numeric(12,2) not null default 0;
+alter table public.products add column if not exists name text;
+update public.products
+set name = coalesce(nullif(btrim(name), ''), nullif(btrim(description), ''), 'منتج #' || id::text)
+where name is null or btrim(name) = '';
+alter table public.products alter column name set not null;
+alter table public.products add column if not exists category text not null default 'عام';
+alter table public.products add column if not exists old_price numeric(12,2) not null default 0;
 alter table public.products add column if not exists brand text not null default '';
+alter table public.products add column if not exists updated_at timestamptz not null default now();
 alter table public.products add column if not exists updated_at timestamptz not null default now();
 alter table public.products alter column stock set default 0;
 create index if not exists products_brand_active_idx on public.products(brand,active);
