@@ -38,7 +38,7 @@
   const {data,error}=await db.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").ilike("brand",name).eq("active",true).order("created_at",{ascending:false});
   if(error){$("nxBrandProducts").innerHTML="تعذر تحميل المنتجات: "+esc(error.message);$("nxBrandEmpty").style.display="none";return;}
   const rows=data||[];
-  $("nxBrandProducts").innerHTML=rows.map(p=>productCard(p,'<button class="add" onclick="event.stopPropagation();nxBuyOne(\\''+String(p.id)+'\\')">اطلب الآن</button>')).join("");
+  $("nxBrandProducts").innerHTML=rows.map(p=>productCard(p,'<button class="add" onclick="event.stopPropagation();nxBuyOne(\''+String(p.id)+'\')">اطلب الآن</button>')).join("");
   $("nxBrandEmpty").style.display=rows.length?"none":"block";
  }
 
