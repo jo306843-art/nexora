@@ -35,13 +35,14 @@
   if(!db){say("تعذر الاتصال بالمتجر حاليًا.");return;}
   $("nxBrandTitle").textContent=name;
   showPage("nxBrandCollection");
-  const {data,error}=await db.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").eq("brand",name).eq("active",true).order("created_at",{ascending:false});
-  if(error){$("nxBrandProducts").innerHTML="تعذر تحميل المنتجات: "+esc(error.message);return;}
+  const {data,error}=await db.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").ilike("brand",name).eq("active",true).order("created_at",{ascending:false});
+  if(error){$("nxBrandProducts").innerHTML="تعذر تحميل المنتجات: "+esc(error.message);$("nxBrandEmpty").style.display="none";return;}
   const rows=data||[];
   $("nxBrandProducts").innerHTML=rows.map(p=>'<article class="product"><img loading="lazy" src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'"><div class="name">'+esc(p.name)+'</div><b class="price">'+money(p.price)+' ج.م</b><button class="add" onclick="nxBuyOne(\''+p.id+'\')">اطلب الآن</button></article>').join("");
   $("nxBrandEmpty").style.display=rows.length?"none":"block";
  }
-\n function addFavButtons(){
+
+ function addFavButtons(){
   if(typeof window.product!=="function")return;
   const original=window.product;
   if(original.__nxWrapped)return;
