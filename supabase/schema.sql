@@ -11,7 +11,7 @@ stable
 security definer
 set search_path = pg_catalog, auth
 as $$
-  select lower(coalesce(auth.jwt() ->> 'email', '')) = 'hoba20@nexora.com';
+  select lower(coalesce(auth.jwt() ->> 'email', '')) = 'jo306843@gmail.com';
 $$;
 
 -- Customer profile metadata. Keep the table compatible with an existing profiles table.
@@ -101,7 +101,7 @@ begin
     new.id,
     lower(coalesce(new.email, '')),
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
-    case when lower(coalesce(new.email, '')) = 'hoba20@nexora.com' then 'owner' else 'customer' end
+    case when lower(coalesce(new.email, '')) = 'jo306843@gmail.com' then 'owner' else 'customer' end
   )
   on conflict (id) do update
     set email = excluded.email,
@@ -123,7 +123,7 @@ for each row execute function public.handle_new_nexora_user();
 insert into public.profiles(id, email, full_name, role)
 select u.id, lower(coalesce(u.email, '')),
        coalesce(u.raw_user_meta_data ->> 'full_name', ''),
-       case when lower(coalesce(u.email, '')) = 'hoba20@nexora.com' then 'owner' else 'customer' end
+       case when lower(coalesce(u.email, '')) = 'jo306843@gmail.com' then 'owner' else 'customer' end
 from auth.users u
 on conflict (id) do update
 set email = excluded.email, full_name = excluded.full_name, role = excluded.role;
