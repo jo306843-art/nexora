@@ -15,7 +15,7 @@
   const {data:rows,error}=await sb.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").order("created_at",{ascending:false});
   if(error){if($("#nxProductsList"))$("#nxProductsList").textContent="خطأ تحميل المنتجات: "+error.message;return;}
   products=rows||[];
-  if(products.length){const visible=products.filter(p=>p.active||owner);data.splice(0,data.length,...visible.map(p=>[p.name,p.category,Number(p.price),Number(p.old_price)||Number(p.price),p.image_url||"https://placehold.co/600x600?text=NEXORA",p.id,p.brand||""]));if(typeof renderProducts==="function")renderProducts();}
+  const visible=products.filter(p=>p.active||owner);data.splice(0,data.length,...visible.map(p=>[p.name,p.category,Number(p.price),Number(p.old_price)||Number(p.price),p.image_url||"https://placehold.co/600x600?text=NEXORA",p.id,p.brand||""]));if(typeof renderProducts==="function")renderProducts();
   drawProducts();
  }
  function drawProducts(){const el=$("#nxProductsList");if(!el)return;el.innerHTML=products.map(p=>'<div style="padding:10px 0;border-bottom:1px solid #ddd"><b>'+esc(p.name)+'</b> · '+money(p.price)+' ج.م · المخزون: '+Number(p.stock||0)+' · '+(p.active?"منشور":"مخفي")+'<div style="display:flex;gap:6px;margin-top:6px"><button class="primary" data-e="'+p.id+'">تعديل</button><button class="primary" data-t="'+p.id+'" style="background:#718A7D">'+(p.active?"إخفاء":"نشر")+'</button><button class="primary" data-d="'+p.id+'" style="background:#a33">حذف</button></div></div>').join("")||"لا توجد منتجات في قاعدة البيانات.";
