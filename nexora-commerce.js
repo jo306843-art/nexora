@@ -15,18 +15,25 @@
  async function seedStarterCatalog(){
   if(!owner)return;
   const brands=["ALEXANDER MCQUEEN","A.LANGE & SÖHNE","BOTTEGA VENETA","BURBERRY","BVLGARI","BREGUET","CHLOÉ","COACH","DIOR","CARTIER"];
-  const images=[
+  const jewelryImages=[
    "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=85",
+   "https://images.unsplash.com/photo-1723361656146-f201d215c49c?auto=format&fit=crop&w=900&q=85",
+   "https://images.unsplash.com/photo-1705326454933-9685fc6888e1?auto=format&fit=crop&w=900&q=85"
+  ];
+  const watchImages=[
    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=85",
    "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=900&q=85",
-   "https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&w=900&q=85"
+   "https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&w=900&q=85",
+   "https://images.unsplash.com/photo-1619134778706-7015533a6150?auto=format&fit=crop&w=900&q=85",
+   "https://images.unsplash.com/photo-1604242692760-2f7b0c26856d?auto=format&fit=crop&w=900&q=85"
   ];
+  const imageFor=(watch,index)=> (watch?watchImages:jewelryImages)[index%(watch?watchImages.length:jewelryImages.length)];
   const jewelry=["طقم عقد وأقراط ذهبي","سوار أنيق مطلي بالذهب","خاتم نسائي بتصميم ناعم","أقراط لؤلؤية يومية","قلادة بحجر لامع"];
   const watches=["ساعة رجالي كلاسيك","ساعة رجالي ستانلس ستيل","ساعة رجالي بسوار جلدي","ساعة رجالي رياضية أنيقة","ساعة رجالي بميناء فاخر"];
   const {data:existing,error}=await sb.from("products").select("name,brand").limit(1000);
@@ -40,10 +47,21 @@
     const name=(watchBrand?watches[j]:jewelry[j])+" — "+brand+" "+(j+1);
     if(have.has(name))continue;
     const price=(watchBrand?[1450,1890,2150,1690,2490]:[280,390,520,340,650])[j]+bi*35;
-    rows.push({name,description:"قطعة مختارة بتصميم أنيق — صور توضيحية للمنتج",category:watchBrand?"ساعات رجالي":"إكسسوارات حريمي",brand,price:Math.round(price),old_price:Math.round(price*1.25),image_url:images[(bi+j)%images.length],stock:12+j,active:true});
+    rows.push({name,description:"قطعة مختارة بتصميم أنيق — صور توضيحية للمنتج",category:watchBrand?"ساعات رجالي":"إكسسوارات حريمي",brand,price:Math.round(price),old_price:Math.round(price*1.25),image_url:imageFor(watchBrand,j),stock:12+j,active:true});
    }
   });
   if(rows.length){const {error:insertError}=await sb.from("products").insert(rows);if(insertError){console.warn("NEXORA catalog seed:",insertError.message);say("تعذر إضافة الكتالوج: "+insertError.message);return;}}
+  // Correct images on the previously seeded NEXORA starter catalog only; leave custom products untouched.
+  const {data:seeded}=await sb.from("products").select("id,name,brand,category").in("brand",brands).limit(1000);
+  const fixes=(seeded||[]).map(p=>{
+   const watch=p.category==="ساعات رجالي";
+   const m=String(p.name||"").match(/ ([1-5])$/);if(!m)return null;
+   const idx=Number(m[1])-1;
+   const known=(watch?watches:jewelry).some(label=>String(p.name).startsWith(label+" — "));
+   if(!known)return null;
+   return sb.from("products").update({image_url:imageFor(watch,idx)}).eq("id",p.id);
+  }).filter(Boolean);
+  if(fixes.length)await Promise.all(fixes);
  }
 
  async function loadProducts(){
