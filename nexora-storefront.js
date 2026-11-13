@@ -38,7 +38,7 @@
   const {data,error}=await db.from("products").select("id,name,description,category,brand,price,old_price,image_url,stock,active").ilike("brand",name).eq("active",true).order("created_at",{ascending:false});
   if(error){$("nxBrandProducts").innerHTML="تعذر تحميل المنتجات: "+esc(error.message);$("nxBrandEmpty").style.display="none";return;}
   const rows=data||[];
-  $("nxBrandProducts").innerHTML=rows.map(p=>'<article class="product"><img loading="lazy" src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'"><div class="name">'+esc(p.name)+'</div><b class="price">'+money(p.price)+' ج.م</b><button class="add" onclick="nxBuyOne(\''+p.id+'\')">اطلب الآن</button></article>').join("");
+  $("nxBrandProducts").innerHTML=rows.map(p=>productCard(p,'<button class="add" onclick="event.stopPropagation();nxBuyOne(\\''+String(p.id)+'\\')">اطلب الآن</button>')).join("");
   $("nxBrandEmpty").style.display=rows.length?"none":"block";
  }
 
@@ -72,6 +72,7 @@
   const {data,error}=await db.from("favorites").select("product_id,products(id,name,description,category,brand,price,old_price,image_url,stock,active)").eq("user_id",user.id);
   if(error){empty.textContent="تعذر تحميل المفضلة: "+error.message;empty.style.display="block";return;}
   favorites=new Set((data||[]).map(x=>String(x.product_id)));
+  if(typeof renderProducts==="function")renderProducts();
   const rows=(data||[]).map(x=>x.products).filter(p=>p&&p.active!==false);
   grid.innerHTML=rows.map(p=>productCard(p,'<button class="add" style="background:#777;margin-top:6px" onclick="event.stopPropagation();nxToggleFavorite(\''+String(p.id)+'\')">إزالة من المفضلة</button>')).join("");
   empty.style.display=rows.length?"none":"block";
